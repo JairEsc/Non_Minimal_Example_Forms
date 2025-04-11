@@ -7,7 +7,7 @@ import time
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 DB_HOST = 'database-1.c12wu4gkibta.us-east-2.rds.amazonaws.com'
 DB_USER = 'admin'
-DB_PASSWORD = 'pass_mysql'
+DB_PASSWORD = '-----'
 DB_NAME = 'prueba_sql'
 lat=0
 long=0
