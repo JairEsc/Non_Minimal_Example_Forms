@@ -126,13 +126,18 @@ app.clientside_callback(
         data={}
         if (n_clicks > 0) {
             console.log("Dummy button clicked");
+            navigator.geolocation.getCurrentPosition(function(position) {
+                localStorage.setItem('latitude_gps', position.coords.latitude);
+                localStorage.setItem('longitude_gps', position.coords.longitude);
+            })
             var lat = localStorage.getItem('latitude');
             var lng =localStorage.getItem('longitude');
+            var lat_gps = localStorage.getItem('latitude_gps');
+            var lng_gps =localStorage.getItem('longitude_gps');
             
-            console.log(lat)
             // Return the updated data to Dash
             data={'lat': lat, 'lng': lng}
-            return {'lat': lat, 'lng': lng};
+            return {'lat': lat, 'lng': lng,'lat_gps': lat_gps, 'lng_gps': lng_gps};
         }
         return data;
     }
@@ -199,7 +204,7 @@ def save_record(disabled, apellido_paterno, apellido_materno, nombre, curp, clav
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 
-        # Connect to the RDS MySQL database
+        #Connect to the RDS MySQL database
         conn = get_db_connection()  # You must define this function elsewhere
         cursor = conn.cursor()
         cursor.execute("SHOW TABLES")
@@ -208,12 +213,12 @@ def save_record(disabled, apellido_paterno, apellido_materno, nombre, curp, clav
         cursor.execute("""
             INSERT INTO formulario_registro (
                 apellido_paterno, apellido_materno, nombre, curp, clave_elector,
-                celular, fecha_gestion, monto, rubro, estatus, impacto,imagen_url, latitud, longitud, fecha_registro
+                celular, fecha_gestion, monto, rubro, estatus, impacto,imagen_url, latitud_introducida, longitud_introducida, fecha_registro, latitud_gps,longitud_gps
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s, %s, %s,%s, %s)
         """, (
             apellido_paterno, apellido_materno, nombre, curp, clave_elector,
-            celular, fecha, monto, rubro, status, impacto, "pendiente",disabled.get('lat'), disabled.get('lng'), now
+            celular, fecha, monto, rubro, status, impacto, "pendiente",disabled.get('lat'), disabled.get('lng'), now,disabled.get('lng_gps'),disabled.get('lng_gps')
         ))
 
         conn.commit()
@@ -230,7 +235,8 @@ def save_record(disabled, apellido_paterno, apellido_materno, nombre, curp, clav
             html.P(f"Rubro: {rubro}"),
             html.P(f"Estatus: {status}"),
             html.P(f"Impacto: {impacto}"),
-            html.P(f"Ubicación: {disabled.get('lat')}, {disabled.get('lng')}"),
+            html.P(f"Ubicación introducida por usuario: {disabled.get('lat')}, {disabled.get('lng')}"),
+            html.P(f"Ubicación según IP: {disabled.get('lat_gps')}, {disabled.get('lng_gps')}"),
 
         ]), True
     return "", no_update
@@ -238,4 +244,4 @@ def save_record(disabled, apellido_paterno, apellido_materno, nombre, curp, clav
 
 #Run the app
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8050)
+    app.run(debug=True)
