@@ -18,15 +18,40 @@
         }
 
         function initMap() {
-            var centro = { lat: 19.4326, lng: -99.1332 };  // Default position in Mexico City
+            // Default position in case geolocation fails
+            var defaultPosition = { lat: 19.4326, lng: -99.1332 }; // Mexico City
 
+            // Try to get user's location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    var userPosition = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+
+                    // Save user's location to localStorage
+                    localStorage.setItem('latitude_gps', userPosition.lat);
+                    localStorage.setItem('longitude_gps', userPosition.lng);
+
+                    initializeMap(userPosition);
+                }, function () {
+                    console.warn("Geolocation failed. Using default position.");
+                    initializeMap(defaultPosition);
+                });
+            } else {
+                console.warn("Geolocation not supported. Using default position.");
+                initializeMap(defaultPosition);
+            }
+        }
+
+        function initializeMap(centerPosition) {
             map = new google.maps.Map(document.getElementById('map'), {
-                center: centro,
+                center: centerPosition,
                 zoom: 12
             });
 
             marker = new google.maps.Marker({
-                position: centro,
+                position: centerPosition,
                 map: map,
                 draggable: true
             });

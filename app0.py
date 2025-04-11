@@ -21,6 +21,19 @@ def get_db_connection():
     )
     return conn
 app.layout = html.Div([
+    dbc.Modal(id='modal_confirmacion', is_open=False, size='lg',
+              children=[
+                  dbc.ModalHeader("Confirmación"),
+                  dbc.ModalBody([
+                      html.P("¿Estás seguro de que deseas guardar el registro?"),
+                      html.Div(id='modal_content')
+                  ]),
+                  dbc.ModalFooter([
+                      dbc.Button("Cerrar", id="close", className="ml-auto"),
+                      dbc.Button("Guardar", id="guardar_modal", color="primary")
+                  ])
+              ]
+    ),
     dbc.Container([
         html.Div(
             className="form-container",
@@ -129,6 +142,7 @@ app.clientside_callback(
             navigator.geolocation.getCurrentPosition(function(position) {
                 localStorage.setItem('latitude_gps', position.coords.latitude);
                 localStorage.setItem('longitude_gps', position.coords.longitude);
+                console.log("localStorage updates with GPS coordinates");
             })
             var lat = localStorage.getItem('latitude');
             var lng =localStorage.getItem('longitude');
@@ -213,7 +227,7 @@ def save_record(disabled, apellido_paterno, apellido_materno, nombre, curp, clav
         cursor.execute("""
             INSERT INTO formulario_registro (
                 apellido_paterno, apellido_materno, nombre, curp, clave_elector,
-                celular, fecha_gestion, monto, rubro, estatus, impacto,imagen_url, latitud_introducida, longitud_introducida, fecha_registro, latitud_gps,longitud_gps
+                celular, fecha_gestion, monto, rubro, estatus, impacto,imagen_url, latitud, longitud, fecha_registro, latitud_gps,longitud_gps
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s, %s, %s,%s, %s)
         """, (
@@ -244,4 +258,4 @@ def save_record(disabled, apellido_paterno, apellido_materno, nombre, curp, clav
 
 #Run the app
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8050)
